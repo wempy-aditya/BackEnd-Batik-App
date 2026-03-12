@@ -8,13 +8,13 @@ import uuid as uuid_pkg
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import BigInteger, DateTime, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy import BigInteger, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from uuid6 import uuid7
 
 from ..core.db.database import Base
-from .enums import AccessLevel, ContentStatus
+from .enums import AccessLevel, AccessLevelType, ContentStatus, ContentStatusType
 
 if TYPE_CHECKING:
     from .categories import DatasetCategoryLink
@@ -67,8 +67,8 @@ class Dataset(Base):
     size: Mapped[int | None] = mapped_column(BigInteger, default=None)  # File size in bytes
 
     # Access control and status
-    access_level: Mapped[AccessLevel] = mapped_column(Enum(AccessLevel), default=AccessLevel.public)
-    status: Mapped[ContentStatus] = mapped_column(Enum(ContentStatus), default=ContentStatus.draft)
+    access_level: Mapped[AccessLevel] = mapped_column(AccessLevelType, default=AccessLevel.public)
+    status: Mapped[ContentStatus] = mapped_column(ContentStatusType, default=ContentStatus.draft)
 
     # User relationship
     created_by: Mapped[uuid_pkg.UUID] = mapped_column(

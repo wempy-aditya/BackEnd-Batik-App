@@ -8,13 +8,13 @@ import uuid as uuid_pkg
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, Enum, ForeignKey, String, Text
+from sqlalchemy import DateTime, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from uuid6 import uuid7
 
 from ..core.db.database import Base
-from .enums import AccessLevel, ContentStatus
+from .enums import AccessLevel, AccessLevelType, ContentStatus, ContentStatusType
 
 if TYPE_CHECKING:
     from .categories import NewsCategoryLink
@@ -40,8 +40,8 @@ class News(Base):
     tags: Mapped[list[str] | None] = mapped_column(ARRAY(String), default=None)  # TEXT[] in ERD
 
     # Access control and status
-    access_level: Mapped[AccessLevel] = mapped_column(Enum(AccessLevel), default=AccessLevel.public)
-    status: Mapped[ContentStatus] = mapped_column(Enum(ContentStatus), default=ContentStatus.draft)
+    access_level: Mapped[AccessLevel] = mapped_column(AccessLevelType, default=AccessLevel.public)
+    status: Mapped[ContentStatus] = mapped_column(ContentStatusType, default=ContentStatus.draft)
 
     # User relationship
     created_by: Mapped[uuid_pkg.UUID] = mapped_column(

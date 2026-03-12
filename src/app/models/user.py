@@ -5,7 +5,7 @@ import uuid as uuid_pkg
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, Enum, ForeignKey, String
+from sqlalchemy import DateTime, Enum as SQLAlchemyEnum, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from uuid6 import uuid7
@@ -31,6 +31,16 @@ class UserRole(enum.Enum):
     premium = "premium"
 
 
+# Create reusable SQLAlchemy ENUM type
+UserRoleType = SQLAlchemyEnum(
+    UserRole,
+    name="userrole",
+    create_constraint=True,
+    native_enum=True,
+    validate_strings=True,
+)
+
+
 class User(Base):
     __tablename__ = "users"  # Changed to plural to match ERD
     __allow_unmapped__ = True  # Disable dataclass transform
@@ -44,7 +54,7 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String)  # Renamed to match ERD
 
     # Role enum matching ERD
-    role: Mapped[UserRole] = mapped_column(Enum(UserRole), default=UserRole.registered)
+    role: Mapped[UserRole] = mapped_column(UserRoleType, default=UserRole.registered)
 
     # Status fields
     is_active: Mapped[bool] = mapped_column(default=True)  # Added from ERD

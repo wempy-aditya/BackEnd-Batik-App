@@ -22,7 +22,7 @@ from .contributor import (
     PublicationContributorLink,
 )
 from .dataset import Dataset
-from .enums import AccessLevel, ContentStatus
+from .enums import AccessLevel, AccessLevelType, ContentStatus, ContentStatusType, ProjectComplexityType
 from .file import File
 from .gallery import Gallery
 from .news import News
@@ -30,6 +30,6 @@ from .post import Post
 from .project import Project
 from .publication import Publication
 from .rate_limit import RateLimit
-from .subscription import Subscription
+from .subscription import Subscription, SubscriptionStatus, SubscriptionStatusType
 from .tier import Tier
-from .user import User, UserRole
+from .user import User, UserRole, UserRoleType

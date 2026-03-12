@@ -6,7 +6,7 @@ from datetime import UTC, datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Numeric, String
+from sqlalchemy import DateTime, Enum as SQLAlchemyEnum, ForeignKey, Numeric, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from uuid6 import uuid7
@@ -25,6 +25,16 @@ class SubscriptionStatus(enum.Enum):
     pending = "pending"
 
 
+# Create reusable SQLAlchemy ENUM type
+SubscriptionStatusType = SQLAlchemyEnum(
+    SubscriptionStatus,
+    name="subscriptionstatus",
+    create_constraint=True,
+    native_enum=True,
+    validate_strings=True,
+)
+
+
 class Subscription(Base):
     """Subscription model for premium user plans matching ERD"""
 
@@ -41,7 +51,7 @@ class Subscription(Base):
     end_date: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
     # Fields with defaults
-    status: Mapped[SubscriptionStatus] = mapped_column(Enum(SubscriptionStatus), default=SubscriptionStatus.pending)
+    status: Mapped[SubscriptionStatus] = mapped_column(SubscriptionStatusType, default=SubscriptionStatus.pending)
     payment_ref: Mapped[str | None] = mapped_column(String(255), default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default_factory=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
