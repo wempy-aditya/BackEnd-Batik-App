@@ -42,9 +42,9 @@ async def create_tables() -> None:
 
 
 def _create_enum_types_if_not_exist(connection) -> None:
-    """Create ENUM types if they don't already exist"""
+    """Create ENUM types if they don't already exist using advisory locks to prevent race conditions"""
     from sqlalchemy import text
-    from sqlalchemy.exc import ProgrammingError
+    from sqlalchemy.exc import DBAPIError, ProgrammingError
     
     # List of ENUM types to create
     enum_definitions = [
@@ -55,25 +55,65 @@ def _create_enum_types_if_not_exist(connection) -> None:
         ("subscriptionstatus", ["active", "expired", "pending"]),
     ]
     
-    for enum_name, enum_values in enum_definitions:
-        try:
-            # Try to create the ENUM type with IF NOT EXISTS equivalent
-            values_str = ", ".join(f"'{v}'" for v in enum_values)
-            # Use DO block to create type only if it doesn't exist
+    # Use advisory lock to ensure only one worker creates ENUMs at a time
+    # Lock ID: hash of 'enum_creation' to a consistent integer
+    lock_id = abs(hash('enum_creation_lock')) % (2**31)
+    
+    try:
+        # Acquire advisory lock (non-blocking)
+        lock_acquired = connection.execute(
+            text("SELECT pg_try_advisory_lock(:lock_id)"),
+            {"lock_id": lock_id}
+        ).scalar()
+        
+        if not lock_acquired:
+            # Another worker is creating ENUMs, wait for it
             connection.execute(
-                text(f"""
-                    DO $$
-                    BEGIN
-                        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = '{enum_name}') THEN
-                            CREATE TYPE {enum_name} AS ENUM ({values_str});
-                        END IF;
-                    END
-                    $$;
-                """)
+                text("SELECT pg_advisory_lock(:lock_id)"),
+                {"lock_id": lock_id}
             )
-        except ProgrammingError:
-            # Type already exists or other transient error, safe to ignore
-            pass
+            # Release immediately after acquiring (the other worker finished)
+            connection.execute(
+                text("SELECT pg_advisory_unlock(:lock_id)"),
+                {"lock_id": lock_id}
+            )
+            return  # ENUMs should exist now
+        
+        # We have the lock, create ENUMs if they don't exist
+        for enum_name, enum_values in enum_definitions:
+            try:
+                # Check if type exists
+                type_exists = connection.execute(
+                    text("SELECT 1 FROM pg_type WHERE typname = :type_name"),
+                    {"type_name": enum_name}
+                ).scalar()
+                
+                if not type_exists:
+                    # Create the ENUM type
+                    values_str = ", ".join(f"'{v}'" for v in enum_values)
+                    connection.execute(
+                        text(f"CREATE TYPE {enum_name} AS ENUM ({values_str})")
+                    )
+            except (ProgrammingError, DBAPIError):
+                # Type might have been created by another process, ignore
+                pass
+        
+        # Release the advisory lock
+        connection.execute(
+            text("SELECT pg_advisory_unlock(:lock_id)"),
+            {"lock_id": lock_id}
+        )
+    except Exception:
+        # Make sure we release the lock even if something goes wrong
+        try:
+            connection.execute(
+                text("SELECT pg_advisory_unlock(:lock_id)"),
+                {"lock_id": lock_id}
+            )
+        except Exception:
+            pass  # Ignore unlock errors
+        # Don't raise - we want the app to continue even if ENUM creation fails
+        pass
 
 
 # -------------- cache --------------
