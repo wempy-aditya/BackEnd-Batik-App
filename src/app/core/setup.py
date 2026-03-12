@@ -44,6 +44,7 @@ async def create_tables() -> None:
 def _create_enum_types_if_not_exist(connection) -> None:
     """Create ENUM types if they don't already exist"""
     from sqlalchemy import text
+    from sqlalchemy.exc import ProgrammingError
     
     # List of ENUM types to create
     enum_definitions = [
@@ -55,20 +56,24 @@ def _create_enum_types_if_not_exist(connection) -> None:
     ]
     
     for enum_name, enum_values in enum_definitions:
-        # Check if ENUM type exists
-        result = connection.execute(
-            text(
-                "SELECT 1 FROM pg_type WHERE typname = :type_name"
-            ),
-            {"type_name": enum_name}
-        ).fetchone()
-        
-        if not result:
-            # ENUM doesn't exist, create it
+        try:
+            # Try to create the ENUM type with IF NOT EXISTS equivalent
             values_str = ", ".join(f"'{v}'" for v in enum_values)
+            # Use DO block to create type only if it doesn't exist
             connection.execute(
-                text(f"CREATE TYPE {enum_name} AS ENUM ({values_str})")
+                text(f"""
+                    DO $$
+                    BEGIN
+                        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = '{enum_name}') THEN
+                            CREATE TYPE {enum_name} AS ENUM ({values_str});
+                        END IF;
+                    END
+                    $$;
+                """)
             )
+        except ProgrammingError:
+            # Type already exists or other transient error, safe to ignore
+            pass
 
 
 # -------------- cache --------------
