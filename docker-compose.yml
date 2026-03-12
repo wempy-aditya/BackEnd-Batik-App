@@ -26,7 +26,7 @@ services:
 
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=backend"
+      - "traefik.docker.network=bridge"
 
       - "traefik.http.routers.batik-api.rule=Host(`batik.umm.ac.id`) && PathPrefix(`/api`)"
       - "traefik.http.routers.batik-api.entrypoints=websecure"
@@ -37,7 +37,6 @@ services:
 
       - "traefik.http.services.batik-api.loadbalancer.server.port=8000"
 
-
   worker:
     build:
       context: .
@@ -45,7 +44,7 @@ services:
 
     container_name: batik-api-worker
 
-    command: arq app.core.worker.settings.WorkerSettings
+    command: arq src.app.core.worker.settings.WorkerSettings
 
     env_file:
       - ./src/.env
@@ -92,4 +91,5 @@ volumes:
 
 networks:
   backend:
-    driver: bridge
+    external: true
+    name: bridge
