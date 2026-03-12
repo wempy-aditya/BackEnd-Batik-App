@@ -23,14 +23,15 @@ services:
 
     networks:
       - backend
-      - bridge
 
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=backend"
       - "traefik.http.routers.batik-api.rule=Host(`batik.umm.ac.id`) && PathPrefix(`/api`)"
       - "traefik.http.routers.batik-api.entrypoints=websecure"
       - "traefik.http.routers.batik-api.tls=true"
       - "traefik.http.services.batik-api.loadbalancer.server.port=8000"
+      # jika ingin strip /api
       # - "traefik.http.middlewares.api-strip.stripprefix.prefixes=/api"
       # - "traefik.http.routers.batik-api.middlewares=api-strip"
 
@@ -90,6 +91,3 @@ volumes:
 networks:
   backend:
     driver: bridge
-
-  bridge:
-    external: true
