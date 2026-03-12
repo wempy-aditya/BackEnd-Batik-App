@@ -1,0 +1,290 @@
+============================= test session starts ==============================
+platform linux -- Python 3.11.14, pytest-8.4.0, pluggy-1.6.0 -- /home/runner/work/BackEnd-Web-Batik/BackEnd-Web-Batik/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/runner/work/BackEnd-Web-Batik/BackEnd-Web-Batik
+configfile: pyproject.toml
+testpaths: tests
+plugins: anyio-4.9.0, asyncio-1.0.0, Faker-40.1.0, mock-3.15.1
+asyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 11 items
+
+tests/test_user.py::TestWriteUser::test_create_user_success ERROR        [  9%]
+tests/test_user.py::TestWriteUser::test_create_user_duplicate_email PASSED [ 18%]
+tests/test_user.py::TestWriteUser::test_create_user_duplicate_username PASSED [ 27%]
+tests/test_user.py::TestReadUser::test_read_user_success ERROR           [ 36%]
+tests/test_user.py::TestReadUser::test_read_user_not_found PASSED        [ 45%]
+tests/test_user.py::TestReadUsers::test_read_users_success PASSED        [ 54%]
+tests/test_user.py::TestPatchUser::test_patch_user_success ERROR         [ 63%]
+tests/test_user.py::TestPatchUser::test_patch_user_forbidden ERROR       [ 72%]
+tests/test_user.py::TestEraseUser::test_erase_user_success ERROR         [ 81%]
+tests/test_user.py::TestEraseUser::test_erase_user_not_found PASSED      [ 90%]
+tests/test_user.py::TestEraseUser::test_erase_user_forbidden ERROR       [100%]
+
+==================================== ERRORS ====================================
+___________ ERROR at setup of TestWriteUser.test_create_user_success ___________
+
+    @pytest.fixture
+    def sample_user_read():
+        """Generate a sample UserRead object."""
+        from uuid6 import uuid7
+    
+        from src.app.schemas.user import UserRead
+    
+>       return UserRead(
+            id=1,
+            uuid=uuid7(),
+            name=fake.name(),
+            username=fake.user_name(),
+            email=fake.email(),
+            profile_image_url=fake.image_url(),
+            is_superuser=False,
+            created_at=fake.date_time(),
+            updated_at=fake.date_time(),
+            tier_id=None,
+        )
+E       pydantic_core._pydantic_core.ValidationError: 3 validation errors for UserRead
+E       id
+E         Input should be a valid string [type=string_type, input_value=1, input_type=int]
+E           For further information visit https://errors.pydantic.dev/2.11/v/string_type
+E       role
+E         Field required [type=missing, input_value={'id': 1, 'uuid': UUID('0...52361), 'tier_id': None}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.11/v/missing
+E       is_active
+E         Field required [type=missing, input_value={'id': 1, 'uuid': UUID('0...52361), 'tier_id': None}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.11/v/missing
+
+tests/conftest.py:79: ValidationError
+____________ ERROR at setup of TestReadUser.test_read_user_success _____________
+
+    @pytest.fixture
+    def sample_user_read():
+        """Generate a sample UserRead object."""
+        from uuid6 import uuid7
+    
+        from src.app.schemas.user import UserRead
+    
+>       return UserRead(
+            id=1,
+            uuid=uuid7(),
+            name=fake.name(),
+            username=fake.user_name(),
+            email=fake.email(),
+            profile_image_url=fake.image_url(),
+            is_superuser=False,
+            created_at=fake.date_time(),
+            updated_at=fake.date_time(),
+            tier_id=None,
+        )
+E       pydantic_core._pydantic_core.ValidationError: 3 validation errors for UserRead
+E       id
+E         Input should be a valid string [type=string_type, input_value=1, input_type=int]
+E           For further information visit https://errors.pydantic.dev/2.11/v/string_type
+E       role
+E         Field required [type=missing, input_value={'id': 1, 'uuid': UUID('0...06614), 'tier_id': None}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.11/v/missing
+E       is_active
+E         Field required [type=missing, input_value={'id': 1, 'uuid': UUID('0...06614), 'tier_id': None}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.11/v/missing
+
+tests/conftest.py:79: ValidationError
+___________ ERROR at setup of TestPatchUser.test_patch_user_success ____________
+
+    @pytest.fixture
+    def sample_user_read():
+        """Generate a sample UserRead object."""
+        from uuid6 import uuid7
+    
+        from src.app.schemas.user import UserRead
+    
+>       return UserRead(
+            id=1,
+            uuid=uuid7(),
+            name=fake.name(),
+            username=fake.user_name(),
+            email=fake.email(),
+            profile_image_url=fake.image_url(),
+            is_superuser=False,
+            created_at=fake.date_time(),
+            updated_at=fake.date_time(),
+            tier_id=None,
+        )
+E       pydantic_core._pydantic_core.ValidationError: 3 validation errors for UserRead
+E       id
+E         Input should be a valid string [type=string_type, input_value=1, input_type=int]
+E           For further information visit https://errors.pydantic.dev/2.11/v/string_type
+E       role
+E         Field required [type=missing, input_value={'id': 1, 'uuid': UUID('0...32970), 'tier_id': None}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.11/v/missing
+E       is_active
+E         Field required [type=missing, input_value={'id': 1, 'uuid': UUID('0...32970), 'tier_id': None}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.11/v/missing
+
+tests/conftest.py:79: ValidationError
+__________ ERROR at setup of TestPatchUser.test_patch_user_forbidden ___________
+
+    @pytest.fixture
+    def sample_user_read():
+        """Generate a sample UserRead object."""
+        from uuid6 import uuid7
+    
+        from src.app.schemas.user import UserRead
+    
+>       return UserRead(
+            id=1,
+            uuid=uuid7(),
+            name=fake.name(),
+            username=fake.user_name(),
+            email=fake.email(),
+            profile_image_url=fake.image_url(),
+            is_superuser=False,
+            created_at=fake.date_time(),
+            updated_at=fake.date_time(),
+            tier_id=None,
+        )
+E       pydantic_core._pydantic_core.ValidationError: 3 validation errors for UserRead
+E       id
+E         Input should be a valid string [type=string_type, input_value=1, input_type=int]
+E           For further information visit https://errors.pydantic.dev/2.11/v/string_type
+E       role
+E         Field required [type=missing, input_value={'id': 1, 'uuid': UUID('0...54539), 'tier_id': None}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.11/v/missing
+E       is_active
+E         Field required [type=missing, input_value={'id': 1, 'uuid': UUID('0...54539), 'tier_id': None}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.11/v/missing
+
+tests/conftest.py:79: ValidationError
+___________ ERROR at setup of TestEraseUser.test_erase_user_success ____________
+
+    @pytest.fixture
+    def sample_user_read():
+        """Generate a sample UserRead object."""
+        from uuid6 import uuid7
+    
+        from src.app.schemas.user import UserRead
+    
+>       return UserRead(
+            id=1,
+            uuid=uuid7(),
+            name=fake.name(),
+            username=fake.user_name(),
+            email=fake.email(),
+            profile_image_url=fake.image_url(),
+            is_superuser=False,
+            created_at=fake.date_time(),
+            updated_at=fake.date_time(),
+            tier_id=None,
+        )
+E       pydantic_core._pydantic_core.ValidationError: 3 validation errors for UserRead
+E       id
+E         Input should be a valid string [type=string_type, input_value=1, input_type=int]
+E           For further information visit https://errors.pydantic.dev/2.11/v/string_type
+E       role
+E         Field required [type=missing, input_value={'id': 1, 'uuid': UUID('0...71996), 'tier_id': None}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.11/v/missing
+E       is_active
+E         Field required [type=missing, input_value={'id': 1, 'uuid': UUID('0...71996), 'tier_id': None}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.11/v/missing
+
+tests/conftest.py:79: ValidationError
+__________ ERROR at setup of TestEraseUser.test_erase_user_forbidden ___________
+
+    @pytest.fixture
+    def sample_user_read():
+        """Generate a sample UserRead object."""
+        from uuid6 import uuid7
+    
+        from src.app.schemas.user import UserRead
+    
+>       return UserRead(
+            id=1,
+            uuid=uuid7(),
+            name=fake.name(),
+            username=fake.user_name(),
+            email=fake.email(),
+            profile_image_url=fake.image_url(),
+            is_superuser=False,
+            created_at=fake.date_time(),
+            updated_at=fake.date_time(),
+            tier_id=None,
+        )
+E       pydantic_core._pydantic_core.ValidationError: 3 validation errors for UserRead
+E       id
+E         Input should be a valid string [type=string_type, input_value=1, input_type=int]
+E           For further information visit https://errors.pydantic.dev/2.11/v/string_type
+E       role
+E         Field required [type=missing, input_value={'id': 1, 'uuid': UUID('0...68916), 'tier_id': None}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.11/v/missing
+E       is_active
+E         Field required [type=missing, input_value={'id': 1, 'uuid': UUID('0...68916), 'tier_id': None}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.11/v/missing
+
+tests/conftest.py:79: ValidationError
+=============================== warnings summary ===============================
+.venv/lib/python3.11/site-packages/starlette/config.py:60
+  /home/runner/work/BackEnd-Web-Batik/BackEnd-Web-Batik/.venv/lib/python3.11/site-packages/starlette/config.py:60: UserWarning: Config file '/home/runner/work/BackEnd-Web-Batik/BackEnd-Web-Batik/src/app/core/../../.env' not found.
+    warnings.warn(f"Config file '{env_file}' not found.")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+ERROR tests/test_user.py::TestWriteUser::test_create_user_success - pydantic_core._pydantic_core.ValidationError: 3 validation errors for UserRead
+id
+  Input should be a valid string [type=string_type, input_value=1, input_type=int]
+    For further information visit https://errors.pydantic.dev/2.11/v/string_type
+role
+  Field required [type=missing, input_value={'id': 1, 'uuid': UUID('0...52361), 'tier_id': None}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+is_active
+  Field required [type=missing, input_value={'id': 1, 'uuid': UUID('0...52361), 'tier_id': None}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+ERROR tests/test_user.py::TestReadUser::test_read_user_success - pydantic_core._pydantic_core.ValidationError: 3 validation errors for UserRead
+id
+  Input should be a valid string [type=string_type, input_value=1, input_type=int]
+    For further information visit https://errors.pydantic.dev/2.11/v/string_type
+role
+  Field required [type=missing, input_value={'id': 1, 'uuid': UUID('0...06614), 'tier_id': None}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+is_active
+  Field required [type=missing, input_value={'id': 1, 'uuid': UUID('0...06614), 'tier_id': None}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+ERROR tests/test_user.py::TestPatchUser::test_patch_user_success - pydantic_core._pydantic_core.ValidationError: 3 validation errors for UserRead
+id
+  Input should be a valid string [type=string_type, input_value=1, input_type=int]
+    For further information visit https://errors.pydantic.dev/2.11/v/string_type
+role
+  Field required [type=missing, input_value={'id': 1, 'uuid': UUID('0...32970), 'tier_id': None}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+is_active
+  Field required [type=missing, input_value={'id': 1, 'uuid': UUID('0...32970), 'tier_id': None}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+ERROR tests/test_user.py::TestPatchUser::test_patch_user_forbidden - pydantic_core._pydantic_core.ValidationError: 3 validation errors for UserRead
+id
+  Input should be a valid string [type=string_type, input_value=1, input_type=int]
+    For further information visit https://errors.pydantic.dev/2.11/v/string_type
+role
+  Field required [type=missing, input_value={'id': 1, 'uuid': UUID('0...54539), 'tier_id': None}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+is_active
+  Field required [type=missing, input_value={'id': 1, 'uuid': UUID('0...54539), 'tier_id': None}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+ERROR tests/test_user.py::TestEraseUser::test_erase_user_success - pydantic_core._pydantic_core.ValidationError: 3 validation errors for UserRead
+id
+  Input should be a valid string [type=string_type, input_value=1, input_type=int]
+    For further information visit https://errors.pydantic.dev/2.11/v/string_type
+role
+  Field required [type=missing, input_value={'id': 1, 'uuid': UUID('0...71996), 'tier_id': None}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+is_active
+  Field required [type=missing, input_value={'id': 1, 'uuid': UUID('0...71996), 'tier_id': None}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+ERROR tests/test_user.py::TestEraseUser::test_erase_user_forbidden - pydantic_core._pydantic_core.ValidationError: 3 validation errors for UserRead
+id
+  Input should be a valid string [type=string_type, input_value=1, input_type=int]
+    For further information visit https://errors.pydantic.dev/2.11/v/string_type
+role
+  Field required [type=missing, input_value={'id': 1, 'uuid': UUID('0...68916), 'tier_id': None}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+is_active
+  Field required [type=missing, input_value={'id': 1, 'uuid': UUID('0...68916), 'tier_id': None}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.11/v/missing
+==================== 5 passed, 1 warning, 6 errors in 0.20s ====================
+Error: Process completed with exit code 1.

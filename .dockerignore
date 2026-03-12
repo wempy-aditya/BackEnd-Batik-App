@@ -1,0 +1,67 @@
+# Git
+.git
+.gitignore
+.github
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Documentation
+docs/
+documentation/
+*.md
+!README.md
+
+# Database
+*.db
+*.sqlite
+database_backups/
+
+# Uploads (should use cloud storage in production)
+uploads/
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Docker
+docker-compose*.yml
+Dockerfile.dev
+
+# Scripts
+scripts/
+testing-script/
+
+# Misc
+.DS_Store
+*.bak
+*.tmp

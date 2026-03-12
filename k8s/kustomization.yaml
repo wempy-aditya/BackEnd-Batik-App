@@ -1,0 +1,29 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: batik-api
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - secrets.yaml
+  - postgres-pvc.yaml
+  - postgres-deployment.yaml
+  - redis-deployment.yaml
+  - uploads-pvc.yaml
+  - fastapi-deployment.yaml
+  - worker-deployment.yaml
+  - ingress.yaml
+  - hpa.yaml
+  - cronjob-backup.yaml
+
+# Optional: CommonLabels for all resources
+commonLabels:
+  app.kubernetes.io/name: batik-api
+  app.kubernetes.io/version: "1.0.0"
+  app.kubernetes.io/managed-by: kustomize
+
+# Images (override in overlays)
+images:
+  - name: ghcr.io/wempy-aditya/batik-api
+    newTag: latest

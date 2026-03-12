@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: uploads-pvc
+  namespace: batik-api
+spec:
+  accessModes:
+    - ReadWriteMany  # Multiple pods need access
+  resources:
+    requests:
+      storage: 20Gi
+  # Use storage class that supports ReadWriteMany
+  # storageClassName: nfs
+  # storageClassName: efs  # AWS EFS
+  # storageClassName: azurefile  # Azure Files
+  # storageClassName: filestore  # GCP Filestore
+
+---
+# Alternative: Use object storage (S3, GCS, Azure Blob) instead of PVC
+# This is recommended for cloud deployments
+# You'll need to modify the app to use cloud storage SDK

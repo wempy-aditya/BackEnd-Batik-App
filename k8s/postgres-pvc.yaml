@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: batik-api
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  # Optional: Specify storage class
+  # storageClassName: standard
+  # For cloud providers:
+  # storageClassName: gp2  # AWS EBS
+  # storageClassName: pd-standard  # GCP Persistent Disk
+  # storageClassName: managed-premium  # Azure Disk

@@ -1,0 +1,195 @@
+version: "3.9"
+
+services:
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: batik-api-web
+
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+    env_file:
+      - ./src/.env
+
+    depends_on:
+      - db
+      - redis
+
+    volumes:
+      - ./src/app:/code/app
+      - ./src/.env:/code/.env
+      - ./uploads:/app/uploads
+
+    expose:
+      - "8000"
+
+    networks:
+      - bridge
+
+    labels:
+      - "traefik.enable=true"
+
+      # router
+      - "traefik.http.routers.batik-api.rule=Host(`batik.umm.ac.id`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.batik-api.entrypoints=websecure"
+      - "traefik.http.routers.batik-api.tls=true"
+
+      # service port
+      - "traefik.http.services.batik-api.loadbalancer.server.port=8000"
+
+      # strip prefix /api
+      - "traefik.http.middlewares.api-strip.stripprefix.prefixes=/api"
+      - "traefik.http.routers.batik-api.middlewares=api-strip"
+
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: batik-api-worker
+
+    command: arq app.core.worker.settings.WorkerSettings
+
+    env_file:
+      - ./src/.env
+
+    depends_on:
+      - db
+      - redis
+
+    volumes:
+      - ./src/app:/code/app
+      - ./src/.env:/code/.env
+      - ./src/alembic.ini:/code/alembic.ini
+      - ./src/migrations:/code/migrations
+
+    networks:
+      - bridge
+
+
+  db:
+    image: postgres:13
+
+    container_name: batik-api-db
+
+    env_file:
+      - ./src/.env
+
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+    ports:
+      - "5433:5432"
+
+    networks:
+      - bridge
+
+
+  redis:
+    image: redis:alpine
+
+    container_name: batik-api-redis
+
+    volumes:
+      - redis-data:/data
+
+    expose:
+      - "6379"
+
+    networks:
+      - bridge
+
+
+volumes:
+  postgres-data:
+  redis-data:
+
+
+networks:
+  bridge:
+    external: true
+
+
+
+version: "3.9"
+
+services:
+
+  web:
+    build: .
+    container_name: batik-api-web
+
+    command: gunicorn src.app.main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000
+
+    env_file:
+      - ./src/.env
+
+    depends_on:
+      - db
+      - redis
+
+    expose:
+      - "8000"
+
+    networks:
+      - bridge
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.batik-api.rule=Host(`batik.umm.ac.id`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.batik-api.entrypoints=websecure"
+      - "traefik.http.routers.batik-api.tls=true"
+      - "traefik.http.services.batik-api.loadbalancer.server.port=8000"
+      - "traefik.http.middlewares.api-strip.stripprefix.prefixes=/api"
+      - "traefik.http.routers.batik-api.middlewares=api-strip"
+
+  worker:
+    build: .
+    container_name: batik-api-worker
+    command: arq app.core.worker.settings.WorkerSettings
+
+    env_file:
+      - ./src/.env
+
+    depends_on:
+      - db
+      - redis
+
+    networks:
+      - bridge
+
+  db:
+    image: postgres:13
+    container_name: batik-api-db
+
+    env_file:
+      - ./src/.env
+
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+    networks:
+      - bridge
+
+  redis:
+    image: redis:alpine
+    container_name: batik-api-redis
+
+    volumes:
+      - redis-data:/data
+
+    networks:
+      - bridge
+
+
+volumes:
+  postgres-data:
+  redis-data:
+
+networks:
+  bridge:
+    external: true

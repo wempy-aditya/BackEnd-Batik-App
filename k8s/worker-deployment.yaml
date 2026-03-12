@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi-worker
+  namespace: batik-api
+  labels:
+    app: fastapi-worker
+spec:
+  replicas: 2  # Background workers
+  selector:
+    matchLabels:
+      app: fastapi-worker
+  template:
+    metadata:
+      labels:
+        app: fastapi-worker
+    spec:
+      containers:
+      - name: worker
+        image: ghcr.io/wempy-aditya/batik-api:latest  # Replace with your image
+        command:
+        - arq
+        - app.core.worker.settings.WorkerSettings
+        envFrom:
+        - configMapRef:
+            name: batik-api-config
+        - secretRef:
+            name: batik-api-secrets
+        
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        
+        # Worker health check (optional)
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - "ps aux | grep arq | grep -v grep"
+          initialDelaySeconds: 30
+          periodSeconds: 30

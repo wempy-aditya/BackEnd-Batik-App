@@ -1,0 +1,60 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: alembic-stamp-job
+  namespace: batik-api
+  labels:
+    app: alembic-stamp
+spec:
+  ttlSecondsAfterFinished: 600  # Auto-delete after 10 minutes
+  template:
+    metadata:
+      labels:
+        app: alembic-stamp
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: alembic-stamp
+        image: ghcr.io/wempy-aditya/backend-web-batik:latest
+        command:
+        - sh
+        - -c
+        - |
+          echo "========================================="
+          echo "Stamping Alembic to mark migrations as applied"
+          echo "========================================="
+          
+          # Wait for database
+          echo "Waiting for database..."
+          sleep 5
+          
+          # Show current alembic version
+          echo "Current alembic version:"
+          alembic current || echo "No version found"
+          
+          # Stamp to head (mark all migrations as applied without running them)
+          echo ""
+          echo "Stamping to head..."
+          alembic stamp head
+          
+          # Verify
+          echo ""
+          echo "New alembic version:"
+          alembic current
+          
+          echo ""
+          echo "✅ Alembic stamped successfully!"
+          echo "Database is now in sync with migration files"
+          echo "========================================="
+        envFrom:
+        - configMapRef:
+            name: batik-api-config
+        - secretRef:
+            name: batik-api-secrets
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "250m"

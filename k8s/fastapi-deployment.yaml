@@ -1,0 +1,131 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi-web
+  namespace: batik-api
+  labels:
+    app: fastapi-web
+spec:
+  replicas: 3  # Horizontal scaling
+  selector:
+    matchLabels:
+      app: fastapi-web
+  template:
+    metadata:
+      labels:
+        app: fastapi-web
+    spec:
+      # Init container - DISABLED by default for manual migration control
+      # Enable this ONLY if you want auto-migrations on every deployment
+      # For database restored from backup, keep this DISABLED
+      initContainers:
+      - name: wait-for-db
+        image: postgres:13
+        command:
+        - sh
+        - -c
+        - |
+          echo "Waiting for database to be ready..."
+          until pg_isready -h $POSTGRES_SERVER -U $POSTGRES_USER; do
+            echo "PostgreSQL is unavailable - sleeping"
+            sleep 2
+          done
+          echo "PostgreSQL is ready!"
+        env:
+        - name: POSTGRES_SERVER
+          valueFrom:
+            configMapKeyRef:
+              name: batik-api-config
+              key: POSTGRES_SERVER
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: batik-api-secrets
+              key: POSTGRES_USER
+      
+      # UNCOMMENT ONLY if you want auto-migration (for fresh database)
+      # - name: migration
+      #   image: ghcr.io/wempy-aditya/backend-web-batik:latest
+      #   command:
+      #   - sh
+      #   - -c
+      #   - |
+      #     echo "Running database migrations..."
+      #     alembic upgrade head
+      #     echo "Migrations completed"
+      #   envFrom:
+      #   - configMapRef:
+      #       name: batik-api-config
+      #   - secretRef:
+      #       name: batik-api-secrets
+      
+      containers:
+      - name: fastapi
+        image: ghcr.io/wempy-aditya/batik-api:latest  # Replace with your image
+        ports:
+        - containerPort: 8000
+          name: http
+        envFrom:
+        - configMapRef:
+            name: batik-api-config
+        - secretRef:
+            name: batik-api-secrets
+        
+        # Volume untuk uploads
+        volumeMounts:
+        - name: uploads
+          mountPath: /app/uploads
+        
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        
+        # Health checks
+        livenessProbe:
+          httpGet:
+            path: /api/v1/health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /api/v1/health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+      
+      volumes:
+      - name: uploads
+        persistentVolumeClaim:
+          claimName: uploads-pvc
+        # Alternative: Use cloud storage (S3, GCS, Azure Blob)
+        # emptyDir: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fastapi-service
+  namespace: batik-api
+  labels:
+    app: fastapi-web
+spec:
+  selector:
+    app: fastapi-web
+  ports:
+  - port: 80
+    targetPort: 8000
+    protocol: TCP
+    name: http
+  type: ClusterIP
+  # For LoadBalancer (cloud providers):
+  # type: LoadBalancer

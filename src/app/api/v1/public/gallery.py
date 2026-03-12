@@ -1,0 +1,183 @@
+"""
+Public API endpoints for Gallery
+Frontend/Homepage endpoints - No authentication required
+Only shows public gallery items
+"""
+
+from typing import Annotated, Any
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from ....core.db.database import async_get_db
+from ....core.exceptions.http_exceptions import NotFoundException
+from ....crud.crud_gallery import crud_gallery
+from ....schemas.gallery import GalleryReadWithRelations
+
+router = APIRouter()
+
+
+@router.get("/", response_model=dict)
+async def get_public_gallery(
+    *,
+    db: Annotated[AsyncSession, Depends(async_get_db)],
+    offset: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=100)] = 24,
+    search: Annotated[str | None, Query(max_length=255, description="Search in prompt")] = None,
+    ai_model_id: Annotated[UUID | None, Query(description="Filter by AI model UUID")] = None,
+    category_id: Annotated[UUID | None, Query(description="Filter by category UUID")] = None,
+    sort_by: Annotated[str | None, Query(description="Sort by: latest, oldest")] = "latest",
+) -> Any:
+    """
+    Get public gallery items for homepage/frontend
+
+    - No authentication required
+    - Shows all gallery items
+    - Higher default limit (24) for grid display
+
+    Filters:
+    - search: Search in prompt text
+    - ai_model_id: Filter by AI model UUID
+    - category_id: Filter by category UUID
+    - sort_by: latest (newest first), oldest
+    """
+    from sqlalchemy import asc, desc, func, select
+
+    from ....models.categories import GalleryCategoryLink
+    from ....models.gallery import Gallery
+
+    # Build base query
+    stmt = select(Gallery)
+
+    # Apply search filter
+    if search:
+        stmt = stmt.where(Gallery.prompt.ilike(f"%{search}%"))
+
+    # Apply AI model filter
+    if ai_model_id:
+        stmt = stmt.where(Gallery.ai_model_id == ai_model_id)
+
+    # Apply category filter
+    if category_id:
+        stmt = stmt.join(GalleryCategoryLink, Gallery.id == GalleryCategoryLink.gallery_id).where(
+            GalleryCategoryLink.category_id == category_id
+        )
+
+    # Apply sorting
+    if sort_by == "oldest":
+        stmt = stmt.order_by(asc(Gallery.created_at))
+    else:  # latest (default)
+        stmt = stmt.order_by(desc(Gallery.created_at))
+
+    # Get total count
+    count_stmt = select(func.count()).select_from(stmt.alias())
+    total_result = await db.execute(count_stmt)
+    total_count = total_result.scalar() or 0
+
+    # Apply pagination
+    stmt = stmt.offset(offset).limit(limit)
+
+    # Execute query
+    result = await db.execute(stmt)
+    gallery_items = result.scalars().all()
+
+    # Convert to dict
+    from sqlalchemy.inspection import inspect
+
+    gallery_data = [{c.key: getattr(item, c.key) for c in inspect(item).mapper.column_attrs} for item in gallery_items]
+
+    return {
+        "data": gallery_data,
+        "total": total_count,
+        "offset": offset,
+        "limit": limit,
+        "has_more": (offset + limit) < total_count,
+    }
+
+
+@router.get("/featured", response_model=dict)
+async def get_featured_gallery(
+    *,
+    db: Annotated[AsyncSession, Depends(async_get_db)],
+    limit: Annotated[int, Query(ge=1, le=50)] = 12,
+) -> Any:
+    """Get featured gallery items for homepage showcase"""
+    # Note: Gallery model doesn't have is_featured or access_level fields
+    # This endpoint returns all gallery items, sorted by created_at
+    gallery_items = await crud_gallery.get_multi(
+        db=db,
+        offset=0,
+        limit=limit,
+    )
+
+    return {"data": gallery_items.get("data", []), "total": len(gallery_items.get("data", []))}
+
+
+@router.get("/latest", response_model=dict)
+async def get_latest_gallery(
+    *,
+    db: Annotated[AsyncSession, Depends(async_get_db)],
+    limit: Annotated[int, Query(ge=1, le=50)] = 12,
+) -> Any:
+    """Get latest gallery items"""
+    gallery_items = await crud_gallery.get_multi(
+        db=db,
+        offset=0,
+        limit=limit,
+    )
+
+    return {"data": gallery_items.get("data", []), "total": len(gallery_items.get("data", []))}
+
+
+@router.get("/{gallery_id}", response_model=GalleryReadWithRelations)
+async def get_public_gallery_item(
+    *,
+    db: Annotated[AsyncSession, Depends(async_get_db)],
+    gallery_id: UUID,
+) -> Any:
+    """Get single gallery item details"""
+    gallery_item = await crud_gallery.get_with_relations(db=db, id=gallery_id)
+
+    if not gallery_item:
+        raise NotFoundException(f"Gallery item with id {gallery_id} not found")
+
+    # Gallery model doesn't have access_level or status fields
+    # All gallery items are considered public
+    return gallery_item
+
+
+@router.get("/by-model/{model_id}", response_model=dict)
+async def get_gallery_by_model(
+    *,
+    db: Annotated[AsyncSession, Depends(async_get_db)],
+    model_id: UUID,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=100)] = 24,
+) -> Any:
+    """
+    Get gallery items generated by specific AI model
+
+    - No authentication required
+    - Shows public gallery items from a specific model
+    - Useful for AI model showcase pages
+    """
+    gallery_items = await crud_gallery.get_multi(
+        db=db,
+        offset=offset,
+        limit=limit,
+        model_id=model_id,
+    )
+
+    total_count = await crud_gallery.count(
+        db=db,
+        model_id=model_id,
+    )
+
+    return {
+        "data": gallery_items.get("data", []),
+        "total": total_count,
+        "offset": offset,
+        "limit": limit,
+        "model_id": str(model_id),
+    }

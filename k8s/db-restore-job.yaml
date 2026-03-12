@@ -1,0 +1,67 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-restore-job
+  namespace: batik-api
+  labels:
+    app: db-restore
+spec:
+  # Keep job for debugging, delete manually when done
+  ttlSecondsAfterFinished: 3600  # Auto-delete after 1 hour (optional)
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: db-restore
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: restore
+        image: postgres:13
+        command:
+        - /bin/bash
+        - /scripts/restore.sh
+        env:
+        - name: POSTGRES_SERVER
+          valueFrom:
+            configMapKeyRef:
+              name: batik-api-config
+              key: POSTGRES_SERVER
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: batik-api-secrets
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: batik-api-secrets
+              key: POSTGRES_PASSWORD
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: batik-api-config
+              key: POSTGRES_DB
+        volumeMounts:
+        - name: restore-script
+          mountPath: /scripts
+        - name: backup-data
+          mountPath: /backup
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      volumes:
+      - name: restore-script
+        configMap:
+          name: db-restore-script
+          defaultMode: 0755
+      - name: backup-data
+        configMap:
+          name: db-backup-sql
+          # Alternative: use PVC if backup file is large
+          # persistentVolumeClaim:
+          #   claimName: backup-pvc

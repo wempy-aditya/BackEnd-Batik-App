@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-batik-backend
+  namespace: web-batik
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-batik-backend
+  template:
+    metadata:
+      labels:
+        app: web-batik-backend
+    spec:
+      containers:
+      - name: web-batik-backend
+        image: 10.10.11.235:5000/backend-web-batik:latest
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: backend-configmap
+        volumeMounts:
+        - name: code-volume
+          mountPath: /code/app
+        - name: uploads-volume
+          mountPath: /app/uploads
+      volumes:
+      - name: code-volume
+        persistentVolumeClaim:
+          claimName: backend-code-pvc
+      - name: uploads-volume
+        persistentVolumeClaim:
+          claimName: backend-uploads-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-batik-backend
+  namespace: web-batik
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8000
+  selector:
+    app: web-batik-backend
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: web-batik-backend-ingress
+  namespace: web-batik
+spec:
+  entryPoints:
+    - websecure
+  routes:
+  - kind: Rule
+    # Mengarahkan trafik rispro.umm.ac.id/api ke backend
+    # Path /api akan tetap ada saat sampai di container
+    match: Host(`rispro.umm.ac.id`) && PathPrefix(`/api`)
+    priority: 110 
+    services:
+    - name: web-batik-backend
+      port: 80
+  tls:
+    secretName: tls-secret
