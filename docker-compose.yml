@@ -23,10 +23,10 @@ services:
 
     networks:
       - backend
+      - traefik-proxy
 
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=bridge"
 
       - "traefik.http.routers.batik-api.rule=Host(`batik.umm.ac.id`) && PathPrefix(`/api`)"
       - "traefik.http.routers.batik-api.entrypoints=websecure"
@@ -59,7 +59,6 @@ services:
 
   db:
     image: postgres:13
-
     container_name: batik-api-db
 
     env_file:
@@ -74,7 +73,6 @@ services:
 
   redis:
     image: redis:alpine
-
     container_name: batik-api-redis
 
     volumes:
@@ -91,5 +89,7 @@ volumes:
 
 networks:
   backend:
+    driver: bridge
+
+  traefik-proxy:
     external: true
-    name: bridge
