@@ -3,7 +3,10 @@ version: "3.7"
 services:
 
   web:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+
     container_name: batik-api-web
 
     command: gunicorn src.app.main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000
@@ -19,6 +22,7 @@ services:
       - "8000"
 
     networks:
+      - backend
       - bridge
 
     labels:
@@ -30,9 +34,14 @@ services:
       # - "traefik.http.middlewares.api-strip.stripprefix.prefixes=/api"
       # - "traefik.http.routers.batik-api.middlewares=api-strip"
 
+
   worker:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+
     container_name: batik-api-worker
+
     command: arq app.core.worker.settings.WorkerSettings
 
     env_file:
@@ -43,10 +52,12 @@ services:
       - redis
 
     networks:
-      - bridge
+      - backend
+
 
   db:
     image: postgres:13
+
     container_name: batik-api-db
 
     env_file:
@@ -56,23 +67,29 @@ services:
       - postgres-data:/var/lib/postgresql/data
 
     networks:
-      - bridge
+      - backend
+
 
   redis:
     image: redis:alpine
+
     container_name: batik-api-redis
 
     volumes:
       - redis-data:/data
 
     networks:
-      - bridge
+      - backend
 
 
 volumes:
   postgres-data:
   redis-data:
 
+
 networks:
+  backend:
+    driver: bridge
+
   bridge:
     external: true
