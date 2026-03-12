@@ -33,8 +33,42 @@ from .utils import cache, queue
 
 # -------------- database --------------
 async def create_tables() -> None:
+    """Create all database tables and handle ENUM types gracefully"""
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+        # First, ensure ENUM types exist
+        await conn.run_sync(_create_enum_types_if_not_exist)
+        # Then create all tables
+        await conn.run_sync(Base.metadata.create_all, checkfirst=True)
+
+
+def _create_enum_types_if_not_exist(connection) -> None:
+    """Create ENUM types if they don't already exist"""
+    from sqlalchemy import text
+    
+    # List of ENUM types to create
+    enum_definitions = [
+        ("accesslevel", ["public", "registered", "premium"]),
+        ("contentstatus", ["draft", "published"]),
+        ("projectcomplexity", ["easy", "medium", "hard"]),
+        ("userrole", ["admin", "registered", "premium"]),
+        ("subscriptionstatus", ["active", "expired", "pending"]),
+    ]
+    
+    for enum_name, enum_values in enum_definitions:
+        # Check if ENUM type exists
+        result = connection.execute(
+            text(
+                "SELECT 1 FROM pg_type WHERE typname = :type_name"
+            ),
+            {"type_name": enum_name}
+        ).fetchone()
+        
+        if not result:
+            # ENUM doesn't exist, create it
+            values_str = ", ".join(f"'{v}'" for v in enum_values)
+            connection.execute(
+                text(f"CREATE TYPE {enum_name} AS ENUM ({values_str})")
+            )
 
 
 # -------------- cache --------------

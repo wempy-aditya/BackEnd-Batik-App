@@ -32,6 +32,7 @@ SubscriptionStatusType = SQLAlchemyEnum(
     create_constraint=True,
     native_enum=True,
     validate_strings=True,
+    create_type=False,  # Don't auto-create, assume it exists
 )
 
 

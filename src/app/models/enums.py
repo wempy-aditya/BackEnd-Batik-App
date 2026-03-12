@@ -30,13 +30,15 @@ class ProjectComplexity(enum.Enum):
     hard = "hard"
 
 
-# Create reusable SQLAlchemy ENUM types with checkfirst=True to avoid duplicate creation errors
+# Create reusable SQLAlchemy ENUM types with create_type=False to prevent automatic creation
+# The types should already exist in the database via migrations or manual creation
 AccessLevelType = SQLAlchemyEnum(
     AccessLevel,
     name="accesslevel",
     create_constraint=True,
     native_enum=True,
     validate_strings=True,
+    create_type=False,  # Don't auto-create, assume it exists
 )
 
 ContentStatusType = SQLAlchemyEnum(
@@ -45,6 +47,7 @@ ContentStatusType = SQLAlchemyEnum(
     create_constraint=True,
     native_enum=True,
     validate_strings=True,
+    create_type=False,  # Don't auto-create, assume it exists
 )
 
 ProjectComplexityType = SQLAlchemyEnum(
@@ -53,4 +56,5 @@ ProjectComplexityType = SQLAlchemyEnum(
     create_constraint=True,
     native_enum=True,
     validate_strings=True,
+    create_type=False,  # Don't auto-create, assume it exists
 )
