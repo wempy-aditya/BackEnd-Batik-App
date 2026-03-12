@@ -29,7 +29,8 @@ services:
 
     labels:
       - "traefik.enable=true"
-
+      - "traefik.docker.network=traefik-proxy"
+      
       - "traefik.http.routers.batik-api.rule=Host(`batik.umm.ac.id`) && PathPrefix(`/api`)"
       - "traefik.http.routers.batik-api.entrypoints=websecure"
       - "traefik.http.routers.batik-api.tls=true"
@@ -57,6 +58,9 @@ services:
 
     networks:
       - backend
+
+    labels:
+      - "traefik.enable=false"
 
 
   db:
