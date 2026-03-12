@@ -35,9 +35,6 @@ services:
       - "traefik.http.routers.batik-api.entrypoints=websecure"
       - "traefik.http.routers.batik-api.tls=true"
 
-      - "traefik.http.middlewares.api-strip.stripprefix.prefixes=/api"
-      - "traefik.http.routers.batik-api.middlewares=api-strip"
-
       - "traefik.http.services.batik-api.loadbalancer.server.port=8000"
 
   worker:
