@@ -10,6 +10,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ....api.dependencies import get_optional_user
 from ....core.db.database import async_get_db
 from ....core.exceptions.http_exceptions import NotFoundException
 from ....crud.crud_ai_models import crud_ai_model
@@ -22,6 +23,7 @@ router = APIRouter()
 async def get_public_ai_models(
     *,
     db: Annotated[AsyncSession, Depends(async_get_db)],
+    current_user: Annotated[dict | None, Depends(get_optional_user)] = None,
     offset: Annotated[int, Query(ge=0)] = 0,
     limit: Annotated[int, Query(ge=1, le=100)] = 12,
     search: Annotated[str | None, Query(max_length=255, description="Search in name and description")] = None,
@@ -35,8 +37,11 @@ async def get_public_ai_models(
     """
     Get public AI models for homepage/frontend
 
-    - No authentication required
-    - Only shows published models with public access
+        - Authentication optional (Bearer token)
+        - Access level by role:
+            - Guest: public
+            - registered: public + registered
+            - premium/admin/superuser: public + registered + premium
     - Supports multiple filters
 
     Filters:
@@ -50,9 +55,24 @@ async def get_public_ai_models(
 
     from ....models.ai_models import AIModel
     from ....models.categories import ModelCategoryLink
+    from ....models.enums import AccessLevel, ContentStatus
+    from ....models.user import UserRole
+
+    allowed_access_levels = [AccessLevel.public]
+    if current_user:
+        role = current_user.get("role")
+        role_value = role.value if hasattr(role, "value") else str(role).lower()
+
+        if current_user.get("is_superuser") or role_value in {UserRole.admin.value, UserRole.premium.value}:
+            allowed_access_levels = [AccessLevel.public, AccessLevel.registered, AccessLevel.premium]
+        elif role_value == UserRole.registered.value:
+            allowed_access_levels = [AccessLevel.public, AccessLevel.registered]
 
     # Build base query
-    stmt = select(AIModel).where(AIModel.status == "published", AIModel.access_level == "public")
+    stmt = select(AIModel).where(
+        AIModel.status == ContentStatus.published,
+        AIModel.access_level.in_(allowed_access_levels),
+    )
 
     # Apply search filter
     if search:

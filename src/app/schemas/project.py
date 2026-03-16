@@ -48,7 +48,6 @@ class ProjectBase(BaseModel):
         ),
     ]
     tags: Annotated[list[str] | None, Field(examples=[["ai", "machine-learning", "python"]], default=None)]
-
     # Project metadata
     complexity: ProjectComplexity | None = None
     start_at: Annotated[datetime | None, Field(examples=["2025-01-15T10:00:00Z"], default=None)]
@@ -90,7 +89,6 @@ class ProjectUpdate(BaseModel):
         Field(examples=[["https://new-demo.example.com"]], description="Demo/prototype URLs", default=None),
     ]
     tags: Annotated[list[str] | None, Field(examples=[["ai", "updated-tag"]], default=None)]
-
     # Project metadata
     complexity: ProjectComplexity | None = None
     start_at: Annotated[datetime | None, Field(examples=["2025-02-01T10:00:00Z"], default=None)]

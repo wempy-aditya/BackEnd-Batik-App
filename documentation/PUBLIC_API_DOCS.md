@@ -29,6 +29,17 @@ Base: `/api/v1/public/projects`
 GET /api/v1/public/projects
 ```
 
+**Authentication (optional):**
+- Tanpa token: hanya konten `access_level=public`
+- User `registered`: konten `public` + `registered`
+- User `premium`: konten `public` + `registered` + `premium`
+- User `admin` / `is_superuser=true`: semua level (`public`, `registered`, `premium`)
+
+Gunakan header berikut jika ingin hasil sesuai role user:
+```http
+Authorization: Bearer <access_token>
+```
+
 **Query Parameters:**
 - `page` (int, default: 1) - Halaman
 - `items_per_page` (int, default: 10, max: 100) - Items per halaman
@@ -111,6 +122,17 @@ GET /api/v1/public/projects/category/{category_id}
 
 Base: `/api/v1/public/datasets`
 
+### Access Behavior (Get All Datasets)
+- Tanpa token: hanya konten `access_level=public`
+- User `registered`: konten `public` + `registered`
+- User `premium`: konten `public` + `registered` + `premium`
+- User `admin` / `is_superuser=true`: semua level (`public`, `registered`, `premium`)
+
+Untuk mengaktifkan hasil berbasis role, kirim header berikut:
+```http
+Authorization: Bearer <access_token>
+```
+
 ### Endpoints
 - `GET /api/v1/public/datasets` - All datasets
 - `GET /api/v1/public/datasets/featured` - Featured datasets
@@ -125,6 +147,17 @@ Base: `/api/v1/public/datasets`
 ## 3. AI Models
 
 Base: `/api/v1/public/ai-models`
+
+### Access Behavior (Get All AI Models)
+- Tanpa token: hanya konten `access_level=public`
+- User `registered`: konten `public` + `registered`
+- User `premium`: konten `public` + `registered` + `premium`
+- User `admin` / `is_superuser=true`: semua level (`public`, `registered`, `premium`)
+
+Untuk mengaktifkan hasil berbasis role, kirim header berikut:
+```http
+Authorization: Bearer <access_token>
+```
 
 ### Endpoints
 - `GET /api/v1/public/ai-models` - All AI models
@@ -175,6 +208,17 @@ GET /api/v1/public/ai-models/framework/{framework}
 
 Base: `/api/v1/public/publications`
 
+### Access Behavior (Get All Publications)
+- Tanpa token: hanya konten `access_level=public`
+- User `registered`: konten `public` + `registered`
+- User `premium`: konten `public` + `registered` + `premium`
+- User `admin` / `is_superuser=true`: semua level (`public`, `registered`, `premium`)
+
+Untuk mengaktifkan hasil berbasis role, kirim header berikut:
+```http
+Authorization: Bearer <access_token>
+```
+
 ### Endpoints
 - `GET /api/v1/public/publications` - All publications
 - `GET /api/v1/public/publications/featured` - Featured publications
@@ -216,6 +260,17 @@ GET /api/v1/public/publications/year/{year}
 ## 5. News
 
 Base: `/api/v1/public/news`
+
+### Access Behavior (Get All News)
+- Tanpa token: hanya konten `access_level=public`
+- User `registered`: konten `public` + `registered`
+- User `premium`: konten `public` + `registered` + `premium`
+- User `admin` / `is_superuser=true`: semua level (`public`, `registered`, `premium`)
+
+Untuk mengaktifkan hasil berbasis role, kirim header berikut:
+```http
+Authorization: Bearer <access_token>
+```
 
 ### Endpoints
 - `GET /api/v1/public/news` - All news
