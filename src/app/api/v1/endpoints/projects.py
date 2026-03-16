@@ -38,7 +38,9 @@ async def create_project(
     # current_user is now guaranteed to exist (not None)
     # Add creator to the project data (handled in CRUD layer)
 
-    project = await crud_project.create_with_categories(db=db, obj_in=project_in, category_ids=category_ids)
+    project = await crud_project.create_with_categories(
+        db=db, obj_in=project_in, created_by=current_user["id"], category_ids=category_ids
+    )
 
     return project
 
